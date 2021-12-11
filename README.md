@@ -1,4 +1,4 @@
-# linuxws2122 - Ansible
+# linux_ws2122 - Ansible
 
 Setup gateway and client vm via ansible.
 
