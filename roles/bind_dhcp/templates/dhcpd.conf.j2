@@ -1,0 +1,37 @@
+authoritative;
+ddns-update-style interim;
+ignore client-updates;
+
+{% for key in dhcpd_keys %}
+key "{{ key.name }}" {
+  algorithm {{ key.algorithm }};
+  secret "{{ key.secret }}";
+}
+{% endfor %}
+
+{% for zone in dhcpd_zones %}
+zone {{ zone.name }} {
+  primary {{ zone.primary }};
+  key "{{ zone.key }}";
+}
+{% endfor %}
+
+subnet {{ dhcpd_network_start }} netmask {{ dhcpd_network_netmask }} {
+  interface {{ dhcpd_interface }};
+
+  range {{ dhcpd_network_range }};
+
+  default-lease-time {{ dhcpd_default_lease_time }};
+  max-lease-time {{ dhcpd_max_lease_time }};
+  min-lease-time {{ dhcpd_min_lease_time }};
+
+  ddns-domainname "{{ dhcpd_ddns_domainname }}";
+
+  update-static-leases on;
+
+  option broadcast-address {{ dhcpd_option_broadcast_address }};
+  option domain-name "{{ dhcpd_option_domain_name }}";
+  option domain-name-servers {{ dhcpd_option_domain_name_servers }};
+  option routers {{ dhcpd_option_routers }};
+  option subnet-mask {{ dhcpd_option_subnet_mask }};
+}

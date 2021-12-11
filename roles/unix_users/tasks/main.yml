@@ -1,0 +1,76 @@
+---
+
+- name: create unix groups
+  group:
+    name: "{{ item }}"
+    state: present
+    system: no
+  with_items: "{{ unix_groups }}"
+  when: unix_groups is defined
+
+- name: filter unix_users for users with non-matching hosts
+  set_fact:
+    unix_users_filtered: "{{ (unix_users_filtered | default([])) + [ item ] }}"
+  when: item.value.hosts is not defined or inventory_hostname in item.value.hosts
+  with_dict: "{{ unix_users }}"
+
+- name: create unix users
+  block:
+  - name: create unix users
+    user:
+      name: "{{ item.key }}"
+      group: "{{ item.value.main_group | default('users') }}"
+      comment: "{{ item.value.name }}"
+      shell: "{{ item.value.shell | default('/bin/bash') }}"
+      password: "{{ item.value.password | password_hash('sha512') }}"
+      state: present
+    loop: "{{ unix_users_filtered }}"
+    when: "item.value.groups is not defined"
+
+  - name: create unix users with additional groups
+    user:
+      name: "{{ item.key }}"
+      group: "{{ item.value.main_group }}"
+      groups: "{{ item.value.groups | join(',') }}"
+      comment: "{{ item.value.name }}"
+      shell: "{{ item.value.shell | default('/bin/bash') }}"
+      password: "{{ item.value.password | password_hash('sha512') }}"
+      state: present
+    loop: "{{ unix_users_filtered }}"
+    when: "item.value.groups is defined"
+
+- name: create .ssh directory
+  file:
+    path: "/home/{{ item.key }}/.ssh"
+    state: directory
+    owner: "{{ item.key }}"
+    group: "{{ item.value.main_group | default('users') }}"
+    mode: 0700
+  loop: "{{ unix_users_filtered }}"
+
+- name: configure ssh keys
+  template:
+    src: authorized_keys.j2
+    dest: "/home/{{ item.key }}/.ssh/authorized_keys"
+    owner: "{{ item.key }}"
+    group: "{{ item.value.main_group | default('users') }}"
+    mode: 0600
+  when: item.value.ssh_key is defined
+  loop: "{{ unix_users_filtered }}"
+
+- name: remove ssh keys if undefined
+  file:
+    path: "/home/{{ item.key }}/.ssh/authorized_keys"
+    state: absent
+  when: item.value.ssh_key is not defined
+  loop: "{{ unix_users_filtered }}"
+
+- name: create email forward file if defined
+  template:
+    src: forward.j2
+    dest: "/home/{{ item.key }}/.forward"
+    owner: "{{ item.key }}"
+    group: "{{ item.value.main_group | default('users') }}"
+    mode: 0644
+  when: item.value.email is defined
+  loop: "{{ unix_users_filtered }}"

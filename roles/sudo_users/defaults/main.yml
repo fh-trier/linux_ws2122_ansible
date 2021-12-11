@@ -1,0 +1,5 @@
+---
+sudo_users:
+  - root
+
+sudo_without_password: false

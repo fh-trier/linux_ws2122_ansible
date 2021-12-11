@@ -1,0 +1,16 @@
+---
+
+unix_groups:
+- linuxws2122
+
+unix_users:
+  linuxws2122:
+    name: "linuxws2122"
+    ssh_key: markus@markus-pc.pub
+    additional_ssh_keys:
+    - name: markus@markus-nb.pub
+      hosts:
+      - all
+    shell: /bin/bash
+    main_group: linuxws2122
+    password: "linuxws2122"

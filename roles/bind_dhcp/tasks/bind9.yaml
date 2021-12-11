@@ -1,0 +1,36 @@
+---
+
+- name: create dhcp config dir
+  file:
+    path: /etc/named
+    owner: named
+    group: named
+    mode: 0755
+    state: directory
+
+- name: set up zones
+  template:
+    src: zone.j2
+    dest: /etc/named/{{ item.origin }}db
+    owner: named
+    group: named
+    mode: 0644
+  with_items:
+  - "{{ bind9_forward_zones }}"
+  - "{{ bind9_reverse_zones }}"
+  notify: restart named
+
+- name: set up global bind config
+  template:
+    src: named.conf.j2
+    dest: /etc/named.conf
+    owner: named
+    group: named
+    mode: 0644
+  notify: restart named
+
+- name: start and enabled named
+  systemd:
+    name: named
+    state: started
+    enabled: yes

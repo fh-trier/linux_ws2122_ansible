@@ -1,0 +1,14 @@
+---
+- name: setup gateway.linuxws2122.de
+  hosts: gateway.linuxws2122.de
+  remote_user: root
+  roles:
+  - { role: common }
+  - { role: networking }
+  - { role: hostname }
+  - { role: sshd }
+  - { role: unix_users }
+  - { role: sudo_users }
+  - { role: vim }
+  - { role: sysctl }
+  - { role: bind_dhcp }

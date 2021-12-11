@@ -1,0 +1,16 @@
+---
+
+- name: system update
+  yum:
+    name: '*'
+    state: latest
+
+- name: stop firewalld
+  systemd:
+    name: firewalld
+    state: stopped
+    enabled: no
+
+- name: disable SELinux
+  selinux:
+    state: disabled

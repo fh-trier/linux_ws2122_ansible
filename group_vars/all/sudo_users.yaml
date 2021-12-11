@@ -1,0 +1,7 @@
+---
+
+sudo_users:
+- root
+- linuxws2122
+
+sudo_without_password: true

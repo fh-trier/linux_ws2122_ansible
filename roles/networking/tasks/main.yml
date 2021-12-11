@@ -1,0 +1,154 @@
+---
+
+- name: "install systemd-networkd"
+  block:
+  - name: "install systemd-networkd (Arch Linux)"
+    pacman:
+      name: systemd-networkd
+      state: present
+    when: ansible_os_family == "Archlinux"
+  - name: "install systemd-networkd (RedHat)"
+    yum:
+      name: systemd-networkd
+      state: present
+    when: ansible_os_family == "RedHat"
+
+- name: "uninstall NetworkManager"
+  block:
+  - name: "uninstall NetworkManager (Arch Linux)"
+    pacman:
+      name: NetworkManager
+      state: absent
+    when: ansible_os_family == "Archlinux"
+  - name: "uninstall systemd-networkd (RedHat)"
+    yum:
+      name: NetworkManager
+      state: absent
+    when: ansible_os_family == "RedHat"
+
+- name: "remove existing systemd-networkd configuration"
+  file:
+    path: "/etc/systemd/network"
+    state: absent
+
+- name: "create systemd-networkd directory"
+  file:
+    path: "/etc/systemd/network"
+    owner: root
+    group: root
+    mode: 0755
+    state: directory
+
+- name: "setup network interfaces via systemd-networkd (DHCP)"
+  block:
+  - name: filter dhcp interfaces
+    set_fact:
+      dhcp_interfaces: "{{ (dhcp_interfaces | default([])) + [ item ] }}"
+    when: item.dhcp
+    with_items: "{{ networking }}"
+
+  - name: "configure network interface {{ item.name }} (DHCP)"
+    template:
+      src: 10-dhcp.network.j2
+      dest: "/etc/systemd/network/{{ item.filename }}"
+      owner: root
+      group: root
+      mode: 0644
+    when: dhcp_interfaces is defined
+    with_items: "{{ dhcp_interfaces }}"
+
+- name: "setup network interfaces via systemd-networkd (static)"
+  block:
+  - name: filter static interfaces
+    set_fact:
+      static_interfaces: "{{ (static_interfaces | default([])) + [ item ] }}"
+    when: not item.dhcp
+    with_items: "{{ networking }}"
+
+  - name: "configure network interface {{ item.name }} (static)"
+    template:
+      src: 10-static.network.j2
+      dest: "/etc/systemd/network/{{ item.filename }}"
+      owner: root
+      group: root
+      mode: 0644
+    when: static_interfaces is defined
+    with_items: "{{ static_interfaces }}"
+
+- name: "setup wpa_supplicant configurations"
+  when: networking_wpa_supplicant is defined and networking_wpa_supplicant | length > 0
+  block:
+  - name: "copy systemd unit for custom wpa_supplicant@.service"
+    copy:
+      src: files/wpa_supplicant@.service
+      dest: /etc/systemd/system/wpa_supplicant@.service
+      owner: root
+      group: root
+
+  - name: "create wpa_supplicant configuration files"
+    template:
+      src: wpa_supplicant.conf.j2
+      dest: "/etc/wpa_supplicant/wpa_supplicant-{{ item.interface }}.conf"
+      owner: root
+      group: root
+      mode: 0640
+    with_items: "{{ networking_wpa_supplicant }}"
+
+  - name: "start and enable wpa_supplicant for interfaces"
+    service:
+      name: wpa_supplicant@{{ item.interface }}.service
+      state: started
+      enabled: yes
+    with_items: "{{ networking_wpa_supplicant }}"
+
+- name: create symlink to resolv.conf
+  file:
+    src: /run/systemd/resolve/stub-resolv.conf
+    dest: /etc/resolv.conf
+    state: link
+    force: yes
+    follow: no
+    owner: root
+    group: root
+
+- name: enable networkd
+  service:
+    name: systemd-networkd
+    enabled: yes
+    daemon_reload: yes
+
+- name: start and enable resolved
+  service:
+    name: systemd-resolved
+    state: started
+    enabled: yes
+    daemon_reload: yes
+
+- name: set timezone
+  timezone:
+    name: "{{ networking_timezone }}"
+
+- name: start and enable timesyncd
+  service:
+    name: systemd-timesyncd
+    state: started
+    enabled: yes
+    daemon_reload: yes
+
+- name: start systemd-networkd after dbus.sock
+  block:
+  - name: create drop-in for systemd-networkd
+    file:
+      path: /etc/systemd/system/systemd-networkd.d
+      owner: root
+      group: root
+      mode: 0755
+      state: directory
+  - name: template after-dbus.conf
+    template:
+      src: after-dbus.conf.j2
+      dest: /etc/systemd/system/systemd-networkd.d/after-dbus.conf
+      owner: root
+      group: root
+      mode: 0644
+  when: ansible_os_family == "RedHat"

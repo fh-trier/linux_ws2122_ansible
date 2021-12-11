@@ -1,0 +1,19 @@
+---
+- name: "getent for user {{ item.user }}"
+  getent:
+    database: passwd
+    key: "{{ item.user }}"
+
+- name: "clone vimrc repository for user {{ item.user }}"
+  git:
+    repo: https://git.cryptic.systems/volker.raschek/vim.git
+    dest: "{{ getent_passwd[item.user][4] }}/.vim"
+    version: "{{ item.branch }}"
+
+- name: correct permissions
+  file:
+    path: "{{ getent_passwd[item.user][4] }}/.vim"
+    owner: "{{ getent_passwd[item.user][1] }}"
+    group: "{{ getent_passwd[item.user][2] }}"
+    state: directory
+    recurse: yes

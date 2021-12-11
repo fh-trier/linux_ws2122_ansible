@@ -1,0 +1,41 @@
+---
+
+networking_timezone: Europe/Berlin
+
+networking:
+- type: "ethernet"
+  filename: "10-en.network"
+  interface: "en*"
+  route_metric: "10"
+  dhcp: true
+
+# Example: Static IP-Address
+# networking:
+# - type: "ethernet"
+#   filename: "10-eth0.network"
+#   interface: "eth0"
+#   route_metric: "99"
+#   dhcp: false
+#   ipv4_address: "192.168.178.12"
+#   ipv4_netmask: "/24"
+#   ipv4_gateway: "192.168.178.1"
+#   ipv6_address:
+#   ipv6_netmask:
+#   ipv6_gateway:
+#   ipv6_ignore_ra: true
+#   dns_servers:
+#   - 10.11.12.13
+#   - 13.12.11.10
+
+# Example: WLAN interface
+# networking:
+# - type: "wireless"
+#   filename: "20-wlp.network"
+#   interface: "wlp*"
+#   route_metric: "20"
+#   dhcp: true
+
+# networking_wpa_supplicant:
+# - interface: "wlp4s0"
+#   ssid: ""
+#   psk: ""

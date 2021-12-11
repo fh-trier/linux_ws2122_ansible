@@ -1,0 +1,82 @@
+---
+
+- name: install sudo
+  yum:
+    name: sudo
+    state: present
+
+# https://github.com/ansible/ansible/issues/11024
+- name: remove all users from wheel group
+  command: groupmems -g wheel --purge
+  register: groupmems
+  changed_when: "groupmems.rc == 0"
+
+- name: add sudo users to wheel
+  user:
+    name: "{{ item }}"
+    append: yes
+    groups: [ wheel ]
+  with_items: "{{ sudo_users }}"
+
+- name: remove wheel group to use sudo
+  block:
+  - name: remove wheel group to use sudo with password
+    lineinfile:
+      dest: /etc/sudoers
+      state: present
+      regexp: '^%wheel ALL=\(ALL\) ALL'
+      line: '# %wheel ALL=(ALL) ALL'
+      validate: 'visudo -cf %s'
+      mode: 0440
+      owner: root
+      group: root
+
+  - name: remove wheel group to use sudo without password
+    lineinfile:
+      dest: /etc/sudoers
+      state: present
+      regexp: '^%wheel ALL=\(ALL\) NOPASSWD: ALL'
+      line: '# %wheel ALL=(ALL) NOPASSWD: ALL'
+      validate: 'visudo -cf %s'
+      mode: 0440
+      owner: root
+      group: root
+
+- name:  allow wheel group to use sudo
+  block:
+  - name: allow wheel group to use sudo with password
+    lineinfile:
+      dest: /etc/sudoers
+      state: present
+      regexp: '^# %wheel ALL=\(ALL\) ALL'
+      line: '%wheel ALL=(ALL) ALL'
+      validate: 'visudo -cf %s'
+      mode: 0440
+      owner: root
+      group: root
+    when: not sudo_without_password
+
+  - name: allow wheel group to use sudo without password
+    tags: [ sudo_users_no_pwd ]
+    lineinfile:
+      dest: /etc/sudoers
+      state: present
+      regexp: '^# %wheel ALL=\(ALL\) NOPASSWD: ALL'
+      line: '%wheel ALL=(ALL) NOPASSWD: ALL'
+      validate: 'visudo -cf %s'
+      mode: 0440
+      owner: root
+      group: root
+    when: sudo_without_password
+
+# - name: secure path to protect against attacks
+#   lineinfile:
+#     dest: /etc/sudoers
+#     state: present
+#     regexp: '^Defaults secure_path="/usr/local/sbin:/usr/local/bin:/usr/bin"'
+#     insertafter: '^# Defaults secure_path="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"'
+#     line: 'Defaults secure_path="/usr/local/sbin:/usr/local/bin:/usr/bin"'
+#     validate: 'visudo -cf %s'
+#     mode: 0440
+#     owner: root
+#     group: root

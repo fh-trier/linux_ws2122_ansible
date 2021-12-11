@@ -1,0 +1,20 @@
+---
+ansible_host: 192.168.179.73
+
+networking:
+- type: "ethernet"
+  filename: "10-enp1s0.network"
+  interface: "enp1s0"
+  route_metric: "10"
+  dhcp: true
+- type: "ethernet"
+  filename: "10-enp2s0.network"
+  interface: "enp2s0"
+  route_metric: "20"
+  dhcp: false
+  ipv4_address: "192.168.179.251"
+  ipv4_netmask: "/24"
+  ipv4_gateway: "192.168.179.1"
+  ipv6_ignore_ra: true
+  dns_servers:
+  - "192.168.179.12"

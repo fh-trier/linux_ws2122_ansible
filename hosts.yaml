@@ -1,0 +1,11 @@
+all:
+  hosts:
+    client.linuxws2122.de:
+    gateway.linuxws2122.de:
+  children:
+    client:
+      hosts:
+        client.linuxws2122.de:
+    gateway:
+      hosts:
+        gateway.linuxws2122.de:

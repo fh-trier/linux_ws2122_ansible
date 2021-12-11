@@ -1,0 +1,90 @@
+---
+
+# dhcpd_interface: "enp7s0"
+# dhcpd_network_start: "192.168.181.0"
+# dhcpd_network_netmask: "255.255.255.0"
+# dhcpd_network_range: "192.168.181.20 192.168.181.200"
+
+# dhcpd_default_lease_time: "43200"
+# dhcpd_max_lease_time: "2168640000"
+# dhcpd_min_lease_time: "21600"
+
+# dhcpd_ddns_domainname: "linuxws2122.de"
+
+# dhcpd_option_broadcast_address: "192.168.181.255"
+# dhcpd_option_domain_name: "linuxws2122.de"
+# dhcpd_option_domain_name_servers: "192.168.181.1"
+# dhcpd_option_routers: "192.168.181.1"
+# dhcpd_option_subnet_mask: "255.255.255.0"
+
+
+# dhcpd_keys:
+# - name: dyndns
+#   algorithm: hmac-sha256
+#   secret: ""
+
+# dhcpd_zones:
+# - name: linuxws2122.de
+#   primary: "192.168.181.1"
+#   key: dyndns
+# - name: 181.168.192.in-addr.arpa
+#   primary: "192.168.181.1"
+#   key: dyndns
+
+
+# bind9_global_allow_query:
+# - "192.168.181.0/24"
+
+# bind9_keys:
+# - name: dyndns
+#   algorithm: hmac-sha512
+#   secret: "+7bISG4ktFi2ytU9WXvBX41ZlxxfW5G+sHKtetNlQjk="
+
+# bind9_listen_on_ipv4:
+# - "192.168.181.1"
+
+# bind9_listen_on_ipv6: []
+
+# bind9_forward_zones:
+# - allow_query:
+#   - "any"
+#   allow_update:
+#   - dyndns
+#   type: master
+#   origin: "linuxws2122.de."
+#   ttl: "3600"
+#   records:
+#   - name: "\t\t" # only for indention
+#     class: "IN"
+#     type: "SOA"
+#     value: "gateway.linuxws2122.de. hostmaster.linuxws2122.de. 2021092000 86400 7200 604800 3600"
+#   - name: "\t\t" # only for indention
+#     class: "IN"
+#     type: "NS"
+#     value: "gateway"
+#   - name: "gateway\t\t"
+#     class: "IN"
+#     type: "A"
+#     value: "192.168.181.1"
+
+# bind9_reverse_zones:
+# - allow_query:
+#   - "any"
+#   allow_update:
+#   - dyndns
+#   type: master
+#   origin: "181.168.192.IN-ADDR.ARPA."
+#   ttl: "3600"
+#   records:
+#   - name: "\t\t" # "\t" only for indention
+#     class: "IN"
+#     type: SOA
+#     value: "gateway.linuxws2122.de. hostmaster.linuxws2122.de. 2021092000 86400 7200 604800 3600"
+#   - name: "\t\t" # "\t" only for indention
+#     class: "IN"
+#     type: NS
+#     value: "gateway.linuxws2122.de."
+#   - name: "1\t\t" # "\t" only for indention
+#     class: "IN"
+#     type: A
+#     value: "gateway.linuxws2122.de."

@@ -1,0 +1,5 @@
+---
+ansible_connection: ssh
+ansible_ssh_user: root
+ansible_ssh_pass: linuxws2122
+ansible_ssh_extra_args: "-o PubkeyAuthentication=no -o PasswordAuthentication=yes"

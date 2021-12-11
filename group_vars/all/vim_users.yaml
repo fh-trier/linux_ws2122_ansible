@@ -1,0 +1,6 @@
+---
+vim_users:
+- user: root
+  branch: no-plugins
+- user: linuxws2122
+  branch: no-plugins

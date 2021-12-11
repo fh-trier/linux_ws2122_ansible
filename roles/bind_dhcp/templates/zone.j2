@@ -1,0 +1,6 @@
+$ORIGIN {{ item.origin }}
+$TTL {{ item.ttl }}
+
+{% for record in item.records %}
+{{ record.name }} {{ record.class | default('IN') }} {{ record.type | default('A') }} {{ record.value }}
+{% endfor %}

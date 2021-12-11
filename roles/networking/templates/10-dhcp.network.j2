@@ -1,0 +1,9 @@
+[Match]
+Name={{ item.interface }}
+
+[Network]
+DHCP=yes
+Domains={{ inventory_hostname.split(".")[1:] | join('.') | lower }}
+
+[DHCP]
+RouteMetric={{ item.route_metric }}

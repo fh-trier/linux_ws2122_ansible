@@ -1,0 +1,15 @@
+---
+
+- name: install bind (named) and dependencies
+  yum:
+    name: "{{ item }}"
+  with_items:
+  - bind
+  - bind-utils
+  - dhcp-server
+
+- name: configure dhcpd server
+  include_tasks: dhcpd.yaml
+
+- name: configure bind9 server
+  include_tasks: bind9.yaml

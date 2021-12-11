@@ -1,0 +1,14 @@
+---
+- name: install vim
+  yum:
+    name: vim
+    state: present
+
+- name: install git to clone vimrc repository
+  yum:
+    name: git
+    state: present
+
+- name: clone vimrc repository
+  include_tasks: git-clone.yml
+  with_items: "{{ vim_users }}"

@@ -1,0 +1,53 @@
+---
+
+- name: create dhcp config dir
+  file:
+    path: /etc/dhcp
+    owner: root
+    group: root
+    mode: 0755
+    state: directory
+
+- name: create dhcpd config
+  template:
+    src: dhcpd.conf.j2
+    dest: /etc/dhcp/dhcpd.conf
+    owner: root
+    group: root
+    mode: 0644
+
+- name: cleanup cache files
+  block:
+  - name: check if cache dir exists
+    stat:
+      path: /var/lib/dhcpd
+    register: cache_stats
+  - name: remove cache dir
+    file:
+      path: /var/lib/dhcpd/
+      state: absent
+    when: cache_stats.stat.exists
+  - name: create cache dir
+    file:
+      path: /var/lib/dhcpd/
+      owner: dhcpd
+      group: dhcpd
+      mode: 0755
+      state: directory
+  - name: create cache files
+    file:
+      path: "/var/lib/dhcpd/{{ item }}"
+      owner: dhcpd
+      group: dhcpd
+      mode: 0644
+      state: touch
+    with_items:
+    - dhcpd.leases
+    - dhcpd6.leases
+    notify: restart dhcpd
+
+- name: start and enable dhcpd
+  systemd:
+    name: dhcpd
+    state: started
+    enabled: yes

@@ -1,0 +1,31 @@
+[Match]
+Name={{ item.interface }}
+
+[Network]
+Gateway={{ item.ipv4_gateway }}
+{% if item.ipv6_gateway is defined %}
+Gateway={{ item.ipv6_gateway }}
+{% endif %}
+{% if item.ipv6_ignore_ra|default(false) is true %}
+IPv6AcceptRA=false
+{% endif %}
+{% for dns_server in item.dns_servers %}
+DNS={{ dns_server }}
+{% endfor %}
+
+[Address]
+Address={{ item.ipv4_address }}{{ item.ipv4_netmask }}
+RouteMetric={{ item.route_metric }}
+{% if item.ipv4_netmask == "/32" %}
+Peer={{ item.ipv4_gateway }}{{ item.ipv4_netmask}}
+{% endif %}
+
+{% if item.ipv6_address is defined %}
+[Address]
+Address={{ item.ipv6_address }}{{ item.ipv6_netmask }}
+{% endif %}
+
+{% if item.ipv6_gateway is defined and not item.ipv6_gateway.startswith("fe80") %}
+[Route]
+Destination={{ item.ipv6_gateway }}
+{% endif %}
