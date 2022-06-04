@@ -3,17 +3,16 @@ kind: pipeline
 type: kubernetes
 name: sync
 
-platform:
-  os: linux
-  arch: amd64
+node_selector:
+  kubernetes.io/arch: amd64
 
 steps:
 - name: github
   image: docker.io/appleboy/drone-git-push:latest
   resources:
     limits:
-      cpu: 50
-      memory: 25M
+      cpu: 150
+      memory: 150M
   settings:
     branch: master
     remote: ssh://git@github.com/fh-trier/linux_ws2122_ansible.git
@@ -34,8 +33,8 @@ steps:
   image: docker.io/drillster/drone-email:latest
   resources:
     limits:
-      cpu: 50
-      memory: 25M
+      cpu: 150
+      memory: 150M
   when:
     status:
     - changed
